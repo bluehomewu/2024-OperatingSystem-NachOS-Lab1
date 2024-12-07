@@ -36,10 +36,26 @@ int SysCreate(char *filename) {
 }
 
 // When you finish the function "OpenAFile", you can remove the comment below.
-/*
+
 OpenFileId SysOpen(char *name)
 {
-        return kernel->fileSystem->OpenAFile(name);
+  return kernel->fileSystem->OpenAFile(name); // OpenAFile() is a member function of FileSystem class in filesys/filesys.h L68
 }
-*/
+
+int SysWrite(char *buffer, int size, OpenFileId id)
+{
+  return kernel->fileSystem->WriteAFile(buffer, size, id); // WriteAFile() is a member function of FileSystem class in filesys/filesys.h L99
+}
+
+int SysRead(char *buffer, int size, OpenFileId id)
+{
+  return kernel->fileSystem->ReadAFile(buffer, size, id); // ReadAFile() is a member function of FileSystem class in filesys/filesys.h L87
+}
+
+
+int SysClose(OpenFileId id)
+{
+  return kernel->fileSystem->CloseAFile(id); // CloseAFile() is a member function of FileSystem class in filesys/filesys.h L110
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */

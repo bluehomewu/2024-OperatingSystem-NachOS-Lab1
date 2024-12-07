@@ -112,7 +112,7 @@ ifeq ($(hosttype),unknown)
 PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
-PROGRAMS = add halt createFile LotOfAdd
+PROGRAMS = add halt createFile LotOfAdd fileIO_test1 fileIO_test2
 endif
 
 all: $(PROGRAMS)

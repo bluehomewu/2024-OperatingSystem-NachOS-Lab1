@@ -124,6 +124,84 @@ void ExceptionHandler(ExceptionType which) {
                     return;
                     ASSERTNOTREACHED();
                     break;
+                /*
+                從 syscall.h 找 SC_{Module Name}，再透過呼叫 ksyscall 來做到真正的 systemcall
+                syscall 是 user program 執行中時主動發出 trap 給 kernel 來請求執行一些特殊指令
+                而 exception 是硬體執行時發出的例外狀況， Interrupt 則有點像是軟體執行到一半突然需要做什麼 (搶奪某資源之類的) 而發出的訊號
+                Ref: https://github.com/shawn2000100/10810CS_342301_OperatingSystem/blob/master/code_without_comment/userprog/exception.cc#L142
+                Open, Write, Read, Close
+                * ksyscall.h -- SysOpen, SysWrite, SysRead, SysClose ; at L38 ~ L60
+                * start.S -- Open, Write, Read, Close ; at L165 ~ L195
+                * syscall.h -- SC_Open, SC_Write, SC_Read, SC_Close ; at L27 ~ L29 & L31
+                * exception.cc -- SC_Open, SC_Write, SC_Read, SC_Close ; at L138 ~ L203
+                * Makefile -- Add fileIO_test1 & fileIO_test2 ; at L115
+                */
+                case SC_Open: {
+                    // DEBUG(dbgSys, "Open\n");
+                    val = kernel->machine->ReadRegister(4); // 從 r4 取得檔案名稱位於記憶體的位置 <-- excpetion.cc L37
+                    char *filename = &(kernel->machine->mainMemory[val]); // 取得檔案名稱
+                    status = SysOpen(filename); // open the file
+                    kernel->machine->WriteRegister(2, (int) status); // 寫入回傳值到 r2 寄存器
+                    kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4); // 指向下一條指令
+                    kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4); // 設定下一個程式計數器
+
+                    // 每一個功能結束後都要 Set Program Counter。之後要依序return, assertnotreached, break...
+                    return;
+                    ASSERTNOTREACHED(); // 結束
+                    break;
+                }
+                case SC_Write: {
+                    // DEBUG(dbgSys, "Write\n");
+                    val = kernel->machine->ReadRegister(4); // 取得寫入的字串位於記憶體的位置 <-- excpetion.cc L37
+                    char *buffer = &(kernel->machine->mainMemory[val]); // 取得寫入的字串
+                    numChar = kernel->machine->ReadRegister(5); // 取得寫入的字串長度 <-- excpetion.cc L38
+                    fileID = kernel->machine->ReadRegister(6); // 取得檔案ID <-- excpetion.cc L39
+                    status = SysWrite(buffer, numChar, fileID); // 寫入字串到檔案
+
+                    kernel->machine->WriteRegister(2, (int) status); // 寫入回傳值到 r2 寄存器
+
+                    kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4); // 指向下一條指令
+                    kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4); // 設定下一個程式計數器
+
+                    // 每一個功能結束後都要 Set Program Counter。之後要依序return, assertnotreached, break...
+                    return;
+                    ASSERTNOTREACHED();
+                    break;
+                }
+                case SC_Read: {
+                    // DEBUG(dbgSys, "Read\n");
+                    val = kernel->machine->ReadRegister(4); // 取得讀取的字串位於記憶體的位置 <-- excpetion.cc L37
+                    char *buffer = &(kernel->machine->mainMemory[val]); // 取得讀取的字串
+                    numChar = kernel->machine->ReadRegister(5); // 取得讀取的字串長度 <-- excpetion.cc L38
+                    fileID = kernel->machine->ReadRegister(6); // 取得檔案ID <-- excpetion.cc L39
+    		
+                    status = SysRead(buffer, numChar, fileID); // 讀取字串到檔案
+       
+                    kernel->machine->WriteRegister(2, (int) status); // 寫入回傳值到 r2 寄存器
+
+                    kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4); // 指向下一條指令
+                    kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4); // 設定下一個程式計數器
+
+                    // 每一個功能結束後都要 Set Program Counter。之後要依序return, assertnotreached, break...
+                    return;
+                    ASSERTNOTREACHED();
+                    break;
+                }
+                case SC_Close: {
+                    // DEBUG(dbgSys, "Close\n");
+                    fileID = kernel->machine->ReadRegister(4); // 取得檔案ID
+                    status = SysClose(fileID); // 關閉檔案
+        
+                    kernel->machine->WriteRegister(2, (int) status); // 寫入回傳值到 r2 寄存器
+
+                    kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4); // 指向下一條指令
+                    kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4); // 設定下一個程式計數器
+
+                    // 每一個功能結束後都要 Set Program Counter。之後要依序return, assertnotreached, break...
+                    return;
+                    ASSERTNOTREACHED();
+                    break;
+                }
                 case SC_Exit:
                     DEBUG(dbgAddr, "Program exit\n");
                     val = kernel->machine->ReadRegister(4);

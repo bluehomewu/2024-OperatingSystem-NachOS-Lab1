@@ -161,7 +161,38 @@ ThreadJoin:
 	syscall
 	j 	$31
 	.end ThreadJoin
+ 
+	.globl Open // 聲明為外部函數
+	.ent	Open // 函數開始
+Open:
+	addiu $2,$0,SC_Open // 將 system call 呼叫 case num 存入 r2 寄存器
+	syscall // 呼叫 system call
+	j	$31
+	.end Open // 函數結束
+ 
+	.globl Write // 聲明為外部函數
+	.ent	Write // 函數開始
+Write:
+	addiu $2,$0,SC_Write // 將 system call 呼叫 case num 存入 r2 寄存器
+	syscall // 呼叫 system call
+	j	$31
+	.end Write // 函數結束
 
+	.globl Read // 聲明為外部函數
+	.ent	Read // 函數開始
+Read:
+	addiu $2,$0,SC_Read // 將 system call 呼叫 case num 存入 r2 寄存器
+	syscall // 呼叫 system call
+	j	$31
+	.end Read // 函數結束
+ 
+	.globl Close // 聲明為外部函數
+	.ent	Close // 函數開始
+Close:
+	addiu $2,$0,SC_Close // 將 system call 呼叫 case num 存入 r2 寄存器
+	syscall // 呼叫 system call
+	j	$31
+	.end Close // 函數結束
 
 /* dummy function to keep gcc happy */
         .globl  __main
@@ -169,4 +200,3 @@ ThreadJoin:
 __main:
         j       $31
         .end    __main
-
